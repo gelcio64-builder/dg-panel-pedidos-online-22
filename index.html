@@ -400,9 +400,9 @@ function renderOrder(o, idx) {
     extHtml += '<div class="extra-tile' + (q > 0 ? ' on' : '') + '" id="et-' + o.id + '-' + sid(e) + '">'
       + '<div class="et-left"><span class="et-name">' + e + '</span><span class="extra-cost">+$' + EXTRA_PRICE.toFixed(2) + '</span></div>'
       + '<div style="display:flex;flex-direction:row;align-items:center;background:rgba(0,0,0,0.3);border-radius:20px;overflow:hidden;">'
-        + '<button class="q-btn" onclick="chgExtra(' + o.id + ',\'' + e + '\',-1)" style="width:28px;height:28px;">&#8722;</button>'
+        + '<button class="q-btn" onclick="chgExtra(' + o.id + ',' + i + ',-1)" style="width:28px;height:28px;">&#8722;</button>'
         + '<span style="min-width:22px;text-align:center;font-weight:800;font-size:13px;" id="eq-' + o.id + '-' + sid(e) + '">' + q + '</span>'
-        + '<button class="q-btn" onclick="chgExtra(' + o.id + ',\'' + e + '\',1)" style="width:28px;height:28px;">+</button>'
+        + '<button class="q-btn" onclick="chgExtra(' + o.id + ',' + i + ',1)" style="width:28px;height:28px;">+</button>'
       + '</div></div>';
   }
 
@@ -675,8 +675,9 @@ function selSob(oid, pid, ai, group, item) {
   refreshUnits(oid);
 }
 
-function chgExtra(oid, extra, d) {
+function chgExtra(oid, extraIdx, d) {
   var o = getOrder(oid); if (!o) return;
+  var extra = EXTRAS[extraIdx];
   o.extras[extra] = Math.max(0, (o.extras[extra] || 0) + d);
   var q = o.extras[extra];
   document.getElementById('eq-' + oid + '-' + sid(extra)).textContent = q;
