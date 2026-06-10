@@ -227,6 +227,38 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .field input:focus,.field textarea:focus{border-color:rgba(190,60,255,0.6)!important;box-shadow:0 0 0 3px rgba(190,60,255,0.12),0 0 16px rgba(190,60,255,0.25)!important;outline:none!important;transition:border-color 0.25s ease,box-shadow 0.25s ease;}
 .field input,.field textarea{transition:border-color 0.25s ease,box-shadow 0.25s ease;}
 </style>
+
+  <!-- Firebase Integration: DG Panel Control -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2S_B5hVaN1Bbxf73WGshxf1-HujB2OMI",
+      authDomain: "dg-panel-control.firebaseapp.com",
+      projectId: "dg-panel-control",
+      storageBucket: "dg-panel-control.firebasestorage.app",
+      messagingSenderId: "657366889213",
+      appId: "1:657366889213:web:549ac411245f19018f4494"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    window.saveOrderToFirestore = async function(orderData) {
+      try {
+        await addDoc(collection(db, 'online_orders'), {
+          ...orderData,
+          createdAt: serverTimestamp(),
+          source: 'online',
+          status: 'pending'
+        });
+        console.log('[DG Panel] Pedido salvo no Firestore ✓');
+      } catch(e) {
+        console.warn('[DG Panel] Firestore save failed (non-blocking):', e);
+      }
+    };
+  </script>
 </head>
 <body>
 <div class="page">
@@ -1027,6 +1059,72 @@ function validateAndSendWA(){
   } else {
     finalMsg=baseMsg+payLines.join('\n');
   }
+
+  // ── Save to DG Panel Firestore (silent, non-blocking) ─────────────────────
+  (function(){
+    try {
+      var items = [];
+      var subTotal = 0;
+      for (var si = 0; si < orders.length; si++) {
+        var ord = orders[si];
+        var ordItems = [];
+        for (var pid in (ord.prods || {})) {
+          var qty = ord.prods[pid] || 0;
+          if (qty <= 0) continue;
+          var prod = null;
+          for (var pi = 0; pi < PRODUCTS.length; pi++) {
+            if (PRODUCTS[pi].id === pid) { prod = PRODUCTS[pi]; break; }
+          }
+          var unitPrice = prod ? prod.price : 0;
+          var lineTotal = unitPrice * qty;
+          subTotal += lineTotal;
+          var units = (ord.units || {})[pid] || [];
+          var comps = [];
+          for (var ui = 0; ui < units.length; ui++) {
+            var u = units[ui];
+            var compNames = Object.keys(u.comps || {}).filter(function(k){ return u.comps[k]; });
+            comps.push({ unitName: u.nome || '', complements: compNames, obs: u.obs || '' });
+          }
+          ordItems.push({
+            productId: pid,
+            productName: prod ? prod.name : pid,
+            qty: qty,
+            unitPrice: unitPrice,
+            lineTotal: lineTotal,
+            units: comps
+          });
+        }
+        items.push({
+          customerName: ord.nome || '',
+          city: ord.cidade || '',
+          address: ord.endereco || '',
+          obs: ord.obs || '',
+          products: ordItems
+        });
+      }
+      var totalEl = document.getElementById('total-pill-val');
+      var totalVal = totalEl ? parseFloat((totalEl.textContent || '0').replace('$','')) : subTotal;
+      var frete = Math.max(0, Math.round((totalVal - subTotal) * 100) / 100);
+      var payload = {
+        customerName: orders[0] ? (orders[0].nome || '') : '',
+        city:         orders[0] ? (orders[0].cidade || '') : '',
+        address:      orders[0] ? (orders[0].endereco || '') : '',
+        paymentMethod: selectedPayment || '',
+        subtotal: subTotal,
+        deliveryFee: frete,
+        total: totalVal,
+        orderCount: orders.length,
+        items: items,
+        observations: orders[0] ? (orders[0].obs || '') : ''
+      };
+      if (typeof window.saveOrderToFirestore === 'function') {
+        window.saveOrderToFirestore(payload);
+      }
+    } catch(ex) {
+      console.warn('[DG Panel] Order payload build failed:', ex);
+    }
+  })();
+  // ───────────────────────────────────────────────────────────────────────────
   window.location.href='https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(finalMsg);
 }
 
