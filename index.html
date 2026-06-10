@@ -1125,7 +1125,10 @@ function validateAndSendWA(){
     }
   })();
   // ───────────────────────────────────────────────────────────────────────────
-  window.location.href='https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(finalMsg);
+  // Small delay to let Firebase save complete before opening WhatsApp
+  setTimeout(function(){
+    window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(finalMsg), '_blank');
+  }, 800);
 }
 
 function addOrder() {
