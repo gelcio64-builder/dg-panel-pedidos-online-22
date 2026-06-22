@@ -231,7 +231,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <!-- Firebase Integration: DG Panel Control -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, serverTimestamp, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyA2S_B5hVaN1Bbxf73WGshxf1-HujB2OMI",
@@ -244,6 +244,45 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
+
+    // ── 🏪 Store status (read store_config in real-time) ────────────────
+    window.DG_STORE = { ready:false, isOpen:true, mode:'auto', label:'', reason:'', open:'15:00', close:'22:00' };
+    function _to12h(t){ if(!t||t.indexOf(':')<0) return t; var p=t.split(':'); var h=+p[0],m=+p[1]; var ap=h>=12?'PM':'AM'; var h12=h%12===0?12:h%12; return h12+':'+String(m).padStart(2,'0')+' '+ap; }
+    function _dateKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    function computeStoreStatus(cfg){
+      cfg = cfg || {};
+      var mode = cfg.mode || 'auto';
+      var hours = (cfg.hours && cfg.hours.default) || {open:'15:00',close:'22:00'};
+      var openT = hours.open||'15:00', closeT = hours.close||'22:00';
+      var closedDates = cfg.closedDates || [];
+      var rangeStr = _to12h(openT)+' to '+_to12h(closeT);
+      if(mode==='maintenance') return {isOpen:false,mode:mode,label:'Loja em manutenção',reason:'Voltamos em breve',open:openT,close:closeT,rangeStr:rangeStr,maintenance:true};
+      if(mode==='open')        return {isOpen:true, mode:mode,label:'Loja aberta', reason:'Aberta até '+_to12h(closeT),open:openT,close:closeT,rangeStr:rangeStr};
+      if(mode==='closed')      return {isOpen:false,mode:mode,label:'Loja fechada',reason:'Atendimento: '+rangeStr,open:openT,close:closeT,rangeStr:rangeStr};
+      // auto
+      var todayKey = _dateKey(new Date());
+      if(closedDates.indexOf(todayKey)>=0) return {isOpen:false,mode:mode,label:'Loja fechada',reason:'Fechada hoje',open:openT,close:closeT,rangeStr:rangeStr};
+      var now = new Date(); var cur = now.getHours()*60+now.getMinutes();
+      var oh=+openT.split(':')[0], om=+openT.split(':')[1], ch=+closeT.split(':')[0], cm=+closeT.split(':')[1];
+      var isOpen = cur>=(oh*60+om) && cur<(ch*60+cm);
+      return {isOpen:isOpen,mode:mode,label:isOpen?'Loja aberta':'Loja fechada',reason:isOpen?('Aberta até '+_to12h(closeT)):('Atendimento: '+rangeStr),open:openT,close:closeT,rangeStr:rangeStr};
+    }
+    function renderStoreBanner(){
+      var s = window.DG_STORE; if(!s.ready) return;
+      var el = document.getElementById('dg-store-banner');
+      if(!el){ el = document.createElement('div'); el.id='dg-store-banner'; document.body.insertBefore(el, document.body.firstChild); }
+      var bg = s.isOpen ? 'linear-gradient(135deg,#16a34a,#15803d)' : (s.maintenance ? 'linear-gradient(135deg,#d97706,#b45309)' : 'linear-gradient(135deg,#dc2626,#b91c1c)');
+      var ic = s.isOpen ? '🟢' : (s.maintenance ? '🔧' : '🔴');
+      el.style.cssText = 'position:sticky;top:0;z-index:9999;width:100%;padding:10px 16px;text-align:center;color:#fff;font-weight:700;font-size:14px;background:'+bg+';box-shadow:0 2px 12px rgba(0,0,0,.2);';
+      el.innerHTML = ic+' '+s.label+(s.isOpen?'':' · '+s.reason);
+    }
+    onSnapshot(doc(db,'user_settings','store_config'), function(snap){
+      var cfg = snap.exists() ? snap.data() : {};
+      var st = computeStoreStatus(cfg);
+      window.DG_STORE = Object.assign({ready:true}, st);
+      renderStoreBanner();
+      if(typeof window.onStoreStatusChange==='function') window.onStoreStatusChange(window.DG_STORE);
+    }, function(err){ console.warn('[DG Panel] store_config read failed:', err); window.DG_STORE.ready=true; });
 
     window.saveOrderToFirestore = async function(orderData) {
       try {
@@ -1021,6 +1060,15 @@ function renderPayDetail(){
 
 function validateAndSendWA(){
   var errEl=document.getElementById('pay-error');
+  // 🏪 Block checkout when store is closed
+  if(window.DG_STORE && window.DG_STORE.ready && !window.DG_STORE.isOpen){
+    var msg = window.DG_STORE.maintenance
+      ? '🔧 Loja em manutenção. Voltamos em breve!'
+      : '🔴 Loja fechada no momento. '+(window.DG_STORE.reason||'');
+    if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
+    try{ alert(msg); }catch(e){}
+    return;
+  }
   if(!selectedPayment){
     errEl.textContent='&#9888;&#65039; Escolha uma forma de pagamento antes de enviar.';
     errEl.style.display='block';
