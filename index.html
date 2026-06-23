@@ -532,7 +532,7 @@ function renderOrder(o, idx) {
     var e = EXTRAS[i]; var q = o.extras[e] || 0;
     var eAvail = (typeof window.isItemAvail==='function') ? window.isItemAvail('complements', e) : true;
     extHtml += '<div class="extra-tile' + (q > 0 ? ' on' : '') + (eAvail ? '' : ' dg-unavail') + '" id="et-' + o.id + '-' + sid(e) + '">'
-      + '<div class="et-left"><span class="et-name">' + e + (eAvail ? '' : ' <span class=\'dg-chip-seal\'>Indisponível</span>') + '</span><span class="extra-cost">+$' + EXTRA_PRICE.toFixed(2) + '</span></div>' '
+      + '<div class="et-left"><span class="et-name">' + e + (eAvail ? '' : ' <span class=\'dg-chip-seal\'>Indisponível</span>') + '</span><span class="extra-cost">+$' + EXTRA_PRICE.toFixed(2) + '</span></div>'
       + '<div style="display:flex;flex-direction:row;align-items:center;background:rgba(0,0,0,0.3);border-radius:20px;overflow:hidden;">'
         + '<button class="q-btn" onclick="chgExtra(' + o.id + ',' + i + ',-1)" style="width:28px;height:28px;">&#8722;</button>'
         + '<span style="min-width:22px;text-align:center;font-weight:800;font-size:13px;" id="eq-' + o.id + '-' + sid(e) + '">' + q + '</span>'
