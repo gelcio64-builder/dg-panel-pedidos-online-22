@@ -5,6 +5,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>D&G Açaí Berry — Pedidos Online</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#be3cff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="D&G Açaí">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -32,6 +41,20 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .header-eyebrow{font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--purple);margin-bottom:8px;}
 .header-title{font-family:'Fredoka',sans-serif;font-size:48px;font-weight:700;line-height:1;letter-spacing:1px;color:#9b10f5;-webkit-text-fill-color:#9b10f5;text-shadow:0 0 40px rgba(155,16,245,0.4),2px 2px 0px rgba(0,0,0,0.3);margin-bottom:10px;}
 .header-sub{color:var(--muted);font-size:13px;letter-spacing:2px;text-transform:uppercase;}
+#dg-store-badge{display:flex;justify-content:center;margin-top:14px;min-height:34px;}
+.dg-badge{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;
+  background:linear-gradient(135deg,rgba(190,60,255,0.14),rgba(236,72,153,0.10));
+  border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 6px 20px var(--glow),inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.dg-badge-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 8px var(--accent),0 0 14px var(--glow);animation:dgPulse 2s ease-in-out infinite;flex-shrink:0;}
+.dg-badge-ico{font-size:13px;line-height:1;}
+.dg-badge-txt{font-size:12.5px;font-weight:700;letter-spacing:.4px;color:var(--text);white-space:nowrap;}
+@keyframes dgPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.55;transform:scale(.82);}}
+@keyframes dgFadeIn{from{opacity:0;transform:translateY(-6px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+.dg-fade{animation:dgFadeIn .5s cubic-bezier(.22,.61,.36,1) both;}
+@media (prefers-reduced-motion:reduce){.dg-badge-dot,.dg-fade{animation:none;}}
 .header-strip{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:22px;padding-top:22px;border-top:1px solid var(--border);}
 .strip-item{font-size:12px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:6px;}
 .strip-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
@@ -59,6 +82,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 /* PRODUCTS */
 .products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.dg-unavail{opacity:.5;filter:grayscale(.7);position:relative;}
+.dg-unavail .p-img{filter:grayscale(1);}
+.dg-chip-seal{display:inline-block;font-size:8px;font-weight:800;color:#ef233c;background:rgba(239,35,60,0.15);
+  border-radius:4px;padding:1px 5px;margin-left:4px;text-transform:uppercase;letter-spacing:.3px;vertical-align:middle;}
+.dg-unavail-seal{margin-top:6px;text-align:center;font-size:11px;font-weight:800;color:#ef233c;
+  background:rgba(239,35,60,0.12);border:1px solid rgba(239,35,60,0.3);border-radius:8px;padding:5px 8px;
+  text-transform:uppercase;letter-spacing:.5px;}
 .product-tile{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;}
 .product-tile.active{border-color:var(--purple);box-shadow:0 0 0 2px var(--purple-soft);}
 .product-tile.special{border-color:rgba(255,209,102,0.3);}
@@ -269,18 +299,42 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     }
     function renderStoreBanner(){
       var s = window.DG_STORE; if(!s.ready) return;
-      var el = document.getElementById('dg-store-banner');
-      if(!el){ el = document.createElement('div'); el.id='dg-store-banner'; document.body.insertBefore(el, document.body.firstChild); }
-      var bg = s.isOpen ? 'linear-gradient(135deg,#16a34a,#15803d)' : (s.maintenance ? 'linear-gradient(135deg,#d97706,#b45309)' : 'linear-gradient(135deg,#dc2626,#b91c1c)');
-      var ic = s.isOpen ? '🟢' : (s.maintenance ? '🔧' : '🔴');
-      el.style.cssText = 'position:sticky;top:0;z-index:9999;width:100%;padding:10px 16px;text-align:center;color:#fff;font-weight:700;font-size:14px;background:'+bg+';box-shadow:0 2px 12px rgba(0,0,0,.2);';
-      el.innerHTML = ic+' '+s.label+(s.isOpen?'':' · '+s.reason);
-    }
+      // Remove any legacy full-width banner
+      var legacy = document.getElementById('dg-store-banner'); if(legacy) legacy.remove();
+      var host = document.getElementById('dg-store-badge');
+      if(!host) return;
+      // Build the status line text
+      var txt, ico, accent, glow;
+      if(s.maintenance){
+        ico='🛠️'; txt='Em Manutenção'; accent='#f5a623'; glow='rgba(245,166,35,.35)';
+      } else if(s.isOpen){
+        var until = (s.close ? _to12h(s.close) : '');
+        ico='🟢'; txt='Loja Aberta'+(until?(' • Até '+until):''); accent='#22c55e'; glow='rgba(34,197,94,.30)';
+      } else {
+        var openAt = (s.open ? _to12h(s.open) : '');
+        ico='🔴'; txt='Loja Fechada'+(openAt?(' • Abrimos às '+openAt):''); accent='#ec4899'; glow='rgba(236,72,153,.30)';
+      }
+      // Build/refresh badge with fade animation
+      var prev = host.getAttribute('data-txt');
+      host.innerHTML = '<span class="dg-badge" style="--accent:'+accent+';--glow:'+glow+'">'
+        + '<span class="dg-badge-dot"></span>'
+        + '<span class="dg-badge-ico">'+ico+'</span>'
+        + '<span class="dg-badge-txt">'+txt+'</span>'
+        + '</span>';
+      host.setAttribute('data-txt', txt);
+      // Trigger fade only when content changed
+      var badgeEl = host.querySelector('.dg-badge');
+      if(badgeEl && prev !== txt){ badgeEl.classList.remove('dg-fade'); void badgeEl.offsetWidth; badgeEl.classList.add('dg-fade'); }
+    }    window.DG_AVAIL = { products:{}, complements:{}, toppings:{} };
+    function isItemAvail(group,key){ var g=window.DG_AVAIL[group]; return !(g && g[key]===false); }
+    window.isItemAvail = isItemAvail;
     onSnapshot(doc(db,'user_settings','store_config'), function(snap){
       var cfg = snap.exists() ? snap.data() : {};
       var st = computeStoreStatus(cfg);
       window.DG_STORE = Object.assign({ready:true}, st);
+      window.DG_AVAIL = cfg.availability || { products:{}, complements:{}, toppings:{} };
       renderStoreBanner();
+      if(typeof window.renderAll==='function'){ try{ window.renderAll(); }catch(e){} }
       if(typeof window.onStoreStatusChange==='function') window.onStoreStatusChange(window.DG_STORE);
     }, function(err){ console.warn('[DG Panel] store_config read failed:', err); window.DG_STORE.ready=true; });
 
@@ -310,6 +364,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <div class="header-eyebrow">Delivery Online</div>
   <h1 class="header-title">D&amp;G Açaí Berry</h1>
   <p class="header-sub">Sistema de Pedidos • WhatsApp</p>
+  <div id="dg-store-badge"></div>
     <div class="header-strip">
     <div class="info-pill" style="animation-delay:0.1s;">🫐 Açaí cremoso</div>
     <div class="info-pill" style="animation-delay:0.25s;">💜 Monte do seu jeito</div>
@@ -451,16 +506,23 @@ function renderOrder(o, idx) {
     } else {
       imgHtml = '<div style="width:100%;height:100%;background-image:url(\'' + IMG_COLLAGE + '\');background-position:' + (p.bgPos || '0% 0%') + ';background-size:155% auto;"></div>';
     }
-    var tile = '<div class="product-tile' + (q > 0 ? ' active' : '') + (p.special ? ' special' : '') + '" id="pt-' + o.id + '-' + p.id + '">'
-      + '<div class="p-img"' + (p.id==='combopremium' ? ' onclick="showComboPremiumInfo()" style="cursor:pointer;"' : '') + '>' + imgHtml + '</div>'
-      + '<div class="p-info">'
-        + '<div class="p-name">' + p.name + '</div>'
-        + '<div class="p-price">$' + p.price + '</div>'
-        + '<div class="qty-row">'
+    var pAvail = (typeof window.isItemAvail==='function') ? window.isItemAvail('products', p.id) : true;
+    var unavClass = pAvail ? '' : ' dg-unavail';
+    var qtyRow = pAvail
+      ? ('<div class="qty-row">'
           + '<button class="q-btn" onclick="event.stopPropagation();changeQty(' + o.id + ',\'' + p.id + '\',-1)">&#8722;</button>'
           + '<span class="q-val" id="qv-' + o.id + '-' + p.id + '">' + q + '</span>'
           + '<button class="q-btn" onclick="event.stopPropagation();changeQty(' + o.id + ',\'' + p.id + '\',1)">+</button>'
-        + '</div>'
+        + '</div>')
+      : '<div class="dg-unavail-seal">Indisponível hoje</div>';
+    var imgClick = !pAvail ? ' onclick="dgUnavailMsg()" style="cursor:not-allowed;"'
+      : (p.id==='combopremium' ? ' onclick="showComboPremiumInfo()" style="cursor:pointer;"' : '');
+    var tile = '<div class="product-tile' + (q > 0 ? ' active' : '') + (p.special ? ' special' : '') + unavClass + '" id="pt-' + o.id + '-' + p.id + '">'
+      + '<div class="p-img"' + imgClick + '>' + imgHtml + '</div>'
+      + '<div class="p-info">'
+        + '<div class="p-name">' + p.name + '</div>'
+        + '<div class="p-price">$' + p.price + '</div>'
+        + qtyRow
       + '</div></div>';
     if (p.special) specialTiles += tile; else regularTiles += tile;
   }
@@ -468,8 +530,9 @@ function renderOrder(o, idx) {
   var extHtml = '';
   for (var i = 0; i < EXTRAS.length; i++) {
     var e = EXTRAS[i]; var q = o.extras[e] || 0;
-    extHtml += '<div class="extra-tile' + (q > 0 ? ' on' : '') + '" id="et-' + o.id + '-' + sid(e) + '">'
-      + '<div class="et-left"><span class="et-name">' + e + '</span><span class="extra-cost">+$' + EXTRA_PRICE.toFixed(2) + '</span></div>'
+    var eAvail = (typeof window.isItemAvail==='function') ? window.isItemAvail('complements', e) : true;
+    extHtml += '<div class="extra-tile' + (q > 0 ? ' on' : '') + (eAvail ? '' : ' dg-unavail') + '" id="et-' + o.id + '-' + sid(e) + '">'
+      + '<div class="et-left"><span class="et-name">' + e + (eAvail ? '' : ' <span class=\'dg-chip-seal\'>Indisponível</span>') + '</span><span class="extra-cost">+$' + EXTRA_PRICE.toFixed(2) + '</span></div>' '
       + '<div style="display:flex;flex-direction:row;align-items:center;background:rgba(0,0,0,0.3);border-radius:20px;overflow:hidden;">'
         + '<button class="q-btn" onclick="chgExtra(' + o.id + ',' + i + ',-1)" style="width:28px;height:28px;">&#8722;</button>'
         + '<span style="min-width:22px;text-align:center;font-weight:800;font-size:13px;" id="eq-' + o.id + '-' + sid(e) + '">' + q + '</span>'
@@ -587,7 +650,7 @@ function buildCompCounters(o, pid, unit, ai, allPaid) {
       cost = paid > 0 ? '+$' + (paid * EXTRA_PRICE).toFixed(2) : '<span style="color:var(--green);font-size:10px;">Grátis</span>';
     }
     html += '<div style="background:var(--surface);border:1px solid ' + (active ? (allPaid ? 'var(--gold)' : 'var(--purple)') + ';background:' + (allPaid ? 'rgba(255,209,102,0.08)' : 'var(--purple-soft)') : 'var(--border)') + ';border-radius:var(--r-sm);padding:8px 10px;">'
-      + '<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:' + (active ? 'var(--text)' : 'var(--muted)') + ';">' + c + '</div>'
+      + '<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:' + (active ? 'var(--text)' : 'var(--muted)') + ';">' + c + ((typeof window.isItemAvail==='function' && !window.isItemAvail('complements', c)) ? ' <span class=\'dg-chip-seal\'>Indisp.</span>' : '') + '</div>'
       + '<div style="display:flex;align-items:center;justify-content:space-between;">'
         + '<div style="display:flex;align-items:center;background:rgba(0,0,0,0.3);border-radius:16px;overflow:hidden;">'
           + '<button class="q-btn" onclick="chgComp(' + o.id + ',\'' + pid + '\',' + ai + ',\'' + c + '\',-1)" style="width:24px;height:24px;font-size:13px;">&#8722;</button>'
@@ -699,8 +762,13 @@ function refreshUnits(oid) {
 }
 
 // ── INTERACTIONS ─────────────────────────────────────────
+function dgUnavailMsg(){
+  try{ alert('Este item está indisponível hoje. Escolha outra opção disponível.'); }catch(e){}
+}
 function changeQty(oid, pid, d) {
   var o = getOrder(oid); if (!o) return;
+  // Block if product is unavailable
+  if(d>0 && typeof window.isItemAvail==='function' && !window.isItemAvail('products', pid)){ dgUnavailMsg(); return; }
   o.prods[pid] = Math.max(0, (o.prods[pid] || 0) + d);
   var q = o.prods[pid];
   document.getElementById('qv-' + oid + '-' + pid).textContent = q;
@@ -732,6 +800,7 @@ function changeQty(oid, pid, d) {
 
 function chgComp(oid, pid, ai, comp, d) {
   var o = getOrder(oid); if (!o) return;
+  if(d>0 && typeof window.isItemAvail==='function' && !window.isItemAvail('complements', comp)){ dgUnavailMsg(); return; }
   var u = ensureUnits(o, pid)[ai]; if (!u) return;
   u.comps[comp] = Math.max(0, (u.comps[comp] || 0) + d);
   refreshUnits(oid);
@@ -749,6 +818,7 @@ function selSob(oid, pid, ai, group, item) {
 function chgExtra(oid, extraIdx, d) {
   var o = getOrder(oid); if (!o) return;
   var extra = EXTRAS[extraIdx];
+  if(d>0 && typeof window.isItemAvail==='function' && !window.isItemAvail('complements', extra)){ dgUnavailMsg(); return; }
   o.extras[extra] = Math.max(0, (o.extras[extra] || 0) + d);
   var q = o.extras[extra];
   document.getElementById('eq-' + oid + '-' + sid(extra)).textContent = q;
@@ -1468,5 +1538,52 @@ addOrder();
     </div>
   </div>
 </div>
+<script>
+  // ── PWA: registra service worker ──────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(function(reg){ console.log('[PWA] Service worker registrado ✓'); })
+        .catch(function(err){ console.warn('[PWA] Falha ao registrar SW:', err); });
+    });
+  }
+
+  // ── PWA: botão "Instalar app" (aparece quando instalável) ─────────────────
+  var dgDeferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    dgDeferredPrompt = e;
+    showInstallButton();
+  });
+  function showInstallButton(){
+    if(document.getElementById('dg-install-btn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'dg-install-btn';
+    btn.innerHTML = '📲 Instalar app';
+    btn.style.cssText = 'position:fixed;bottom:18px;right:18px;z-index:99999;'
+      + 'background:linear-gradient(135deg,#be3cff,#ec4899);color:#fff;border:none;'
+      + 'border-radius:999px;padding:13px 20px;font-size:14px;font-weight:800;font-family:inherit;'
+      + 'box-shadow:0 6px 24px rgba(190,60,255,.45);cursor:pointer;animation:dgInstallIn .5s ease both;';
+    btn.onclick = function(){
+      if(!dgDeferredPrompt) return;
+      dgDeferredPrompt.prompt();
+      dgDeferredPrompt.userChoice.then(function(choice){
+        if(choice.outcome === 'accepted'){ console.log('[PWA] App instalado ✓'); }
+        dgDeferredPrompt = null;
+        btn.remove();
+      });
+    };
+    document.body.appendChild(btn);
+  }
+  // Esconde o botão depois de instalado
+  window.addEventListener('appinstalled', function(){
+    var b = document.getElementById('dg-install-btn'); if(b) b.remove();
+    console.log('[PWA] App adicionado à tela inicial ✓');
+  });
+  // Animação do botão
+  var _st = document.createElement('style');
+  _st.textContent = '@keyframes dgInstallIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}';
+  document.head.appendChild(_st);
+</script>
 </body>
 </html>

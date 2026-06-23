@@ -1,0 +1,33 @@
+{
+  "name": "D&G Açaí Berry — Pedidos",
+  "short_name": "D&G Açaí",
+  "description": "Peça seu açaí D&G Açaí Berry direto pelo app. Monte do seu jeito e receba em casa.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07050f",
+  "theme_color": "#be3cff",
+  "lang": "pt-BR",
+  "categories": ["food", "shopping"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
